@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Formas de Pagamento - Dream Donuts</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="forma_pagamento.css?v=1.0">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Gerenciar Formas de Pagamento</h1>
+            <div class="header-buttons">
+                <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+                <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Busca e Ações -->
+        <section class="search-actions-section">
+            <h2>Gerenciar Formas de Pagamento</h2>
+            <div class="search-actions-container">
+                <div class="search-group">
+                    <label for="buscar-id">Buscar por ID:</label>
+                    <input type="number" id="buscar-id" placeholder="ID da forma de pagamento">
+                    <button onclick="buscarFormaPagamento()" class="btn-search">Buscar</button>
+                    <button onclick="cancelarBusca()" class="btn-cancel">Cancelar</button>
+                </div>
+                
+                <div class="actions-group">
+                    <button class="btn-add" onclick="modoAdicionar()" id="btn-adicionar" style="display: none;">Adicionar Forma Pagamento</button>
+                    <button class="btn-edit" onclick="modoEditar()" id="btn-alterar" style="display: none;">Alterar</button>
+                    <button class="btn-delete" onclick="excluirFormaPagamento()" id="btn-excluir" style="display: none;">Excluir</button>
+                    <button type="submit" form="form-forma-pagamento" class="btn-save" id="btn-salvar" style="display: none;">Salvar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Formulário -->
+        <section>
+            <h2>Dados da Forma de Pagamento</h2>
+            <form id="form-forma-pagamento">
+                <input type="hidden" id="id_forma_pagamento" name="id_forma_pagamento">
+
+                <fieldset>
+                    <legend>Informações da Forma de Pagamento</legend>
+
+                    <div class="form-group">
+                        <label>ID da Forma de Pagamento:</label>
+                        <input type="text" id="display_id" disabled class="id-display">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nome:</label>
+                        <input type="text" id="nome_forma_pagamento" required disabled placeholder="Ex: Cartão de Crédito, PIX, Dinheiro">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ativo">Ativo:</label>
+                        <select id="ativo" disabled>
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Lista de Formas de Pagamento -->
+        <section>
+            <h2>Lista de Formas de Pagamento</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Ativo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-formas-pagamento"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>DreamDonuts © 2025</p>
+    </footer>
+
+    <!-- Container para mensagens flutuantes -->
+    <div id="messageContainer"></div>
+
+    <script src="forma_pagamento.js?v=1.0"></script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciar Produtos - DreamDonuts</title>
+  <link rel="stylesheet" href="produto.css">
+  <script src="produto.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Gerenciar Produtos</h1>
+      <div class="header-buttons">
+        <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+        <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Busca e Ações -->
+    <section class="search-actions-section">
+      <h2>Gerenciar Produtos</h2>
+      <div class="search-actions-container">
+        <div class="search-group">
+          <label for="buscar-id">Buscar por ID:</label>
+          <input type="number" id="buscar-id" placeholder="ID do produto">
+          <button onclick="buscarProduto()" class="btn-search">Buscar</button>
+          <button onclick="cancelarBusca()" class="btn-cancel">Cancelar</button>
+        </div>
+        
+        <div class="actions-group">
+          <button class="btn-add" onclick="modoAdicionar()" id="btn-adicionar" style="display: none;">Adicionar Produto</button>
+          <button class="btn-edit" onclick="modoEditar()" id="btn-alterar" style="display: none;">Alterar</button>
+          <button class="btn-delete" onclick="excluirProduto()" id="btn-excluir" style="display: none;">Excluir</button>
+          <button type="submit" form="form-produto" class="btn-save" id="btn-salvar" style="display: none;">Salvar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário -->
+    <section>
+      <h2>Dados do Produto</h2>
+      <form id="form-produto">
+        <input type="hidden" id="id_produto" name="id_produto">
+
+        <fieldset>
+          <legend>Informações do Produto</legend>
+
+          <div class="form-group">
+            <label>ID do Produto:</label>
+            <input type="text" id="display_id" disabled class="id-display">
+          </div>
+
+          <div class="form-group">
+            <label>Nome:</label>
+            <input type="text" id="nome_produto" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Descrição:</label>
+            <textarea id="descricao_produto" disabled></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Preço (R$):</label>
+            <input type="number" step="0.01" id="preco_produto" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Quantidade em estoque:</label>
+            <input type="number" id="quantidade_estoque" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label>Imagem:</label>
+            <input type="file" id="imagem_produto" accept="image/*" disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="categoria_id">Categoria ID:</label>
+            <input type="number" id="categoria_id" disabled>
+            <div class="dica-categoria" id="dica-categoria">
+              <!-- Dica será preenchida dinamicamente pelo JavaScript -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ativo">Ativo:</label>
+            <select id="ativo" disabled>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <!-- Lista de Categorias Disponíveis -->
+    <section id="categorias-section" style="display: none;">
+      <h2>Categorias Disponíveis</h2>
+      <div class="table-container">
+        <table id="tabela-categorias">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+          <tbody id="lista-categorias-body">
+            <!-- Dados carregados dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Lista de Produtos -->
+    <section>
+      <h2>Lista de Produtos</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Preço</th>
+              <th>Estoque</th>
+              <th>Imagem</th>
+              <th>Categoria</th>
+              <th>Ativo</th>
+              <th>Data Criação</th>
+            </tr>
+          </thead>
+          <tbody id="lista-produtos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>DreamDonuts © 2025</p>
+  </footer>
+
+  <!-- Container para mensagens flutuantes -->
+  <div id="messageContainer"></div>
+
+  <style>
+    /* Mensagens flutuantes */
+    .mensagem-flutuante {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .mensagem-flutuante.error {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .mensagem-flutuante.success {
+      background: linear-gradient(135deg, #28a745, #218838);
+    }
+
+    .mensagem-flutuante.info {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+
+    .mensagem-flutuante.warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800);
+      color: black;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Dica para o campo categoria */
+    .dica-categoria {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+      font-style: italic;
+      padding: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 3px solid aquamarine;
+    }
+
+    /* Botão para mostrar/ocultar categorias */
+    .btn-toggle-categorias {
+      background: linear-gradient(135deg, #6f42c1, #5a2d91);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .btn-toggle-categorias:hover {
+      background: linear-gradient(135deg, #5a2d91, #4a2378);
+      transform: translateY(-1px);
+    }
+  </style>
+
+  <script>
+    // Função para carregar e exibir categorias na tabela
+    async function carregarCategoriasNaTabela() {
+      try {
+        const response = await fetch('http://localhost:3001/categoria');
+        if (!response.ok) throw new Error('Erro ao carregar categorias');
+        
+        const categorias = await response.json();
+        const tbody = document.getElementById('lista-categorias-body');
+        tbody.innerHTML = '';
+
+        if (categorias.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma categoria cadastrada</td></tr>';
+          return;
+        }
+
+        categorias.forEach(categoria => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${categoria.id_categoria}</td>
+            <td>${categoria.nome_categoria}</td>
+            <td>${categoria.descricao_categoria || 'Sem descrição'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (erro) {
+        console.error('Erro ao carregar categorias para exibição:', erro);
+        const tbody = document.getElementById('lista-categorias-body');
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #dc3545;">Erro ao carregar categorias</td></tr>';
+      }
+    }
+
+    // Função para mostrar/ocultar a lista de categorias
+    function toggleCategorias() {
+      const categoriasSection = document.getElementById('categorias-section');
+      const btnToggle = document.getElementById('btn-toggle-categorias');
+      
+      if (categoriasSection.style.display === 'none') {
+        // Carrega as categorias quando for mostrar a seção
+        carregarCategoriasNaTabela();
+        categoriasSection.style.display = 'block';
+        btnToggle.textContent = '👆 Ocultar Categorias';
+      } else {
+        categoriasSection.style.display = 'none';
+        btnToggle.textContent = '👇 Ver Categorias Disponíveis';
+      }
+    }
+
+    // Adicionar botão para mostrar categorias após carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+      const dicaCategoria = document.getElementById('dica-categoria');
+      if (dicaCategoria) {
+        const btnToggle = document.createElement('button');
+        btnToggle.type = 'button';
+        btnToggle.className = 'btn-toggle-categorias';
+        btnToggle.id = 'btn-toggle-categorias';
+        btnToggle.textContent = '👇 Ver Categorias Disponíveis';
+        btnToggle.onclick = toggleCategorias;
+        dicaCategoria.appendChild(btnToggle);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Conta - Dream Donuts</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <div class="logo">
+        <h1>🍩 Dream Donuts</h1>
+        <p>Crie sua conta!</p>
+      </div>
+
+      <form id="registerForm" class="login-form">
+        <div class="form-group">
+          <label for="name">Nome completo:</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="cpf">CPF:</label>
+          <input type="text" id="cpf" name="cpf" maxlength="14" placeholder="000.000.000-00" required>
+        </div>
+
+        <div class="form-group">
+          <label for="birthdate">Data de nascimento:</label>
+          <input type="date" id="birthdate" name="birthdate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha:</label>
+          <input type="password" id="password" name="password" required minlength="6">
+        </div>
+
+        <fieldset style="border: 1px solid #ccc; padding: 15px; margin: 15px 0; border-radius: 8px;">
+          <legend style="padding: 0 10px; font-weight: bold;">Endereço de Entrega</legend>
+          
+          <div class="form-group">
+            <label for="cep">CEP:</label>
+            <input type="text" id="cep" name="cep" maxlength="9" placeholder="00000-000" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rua">Rua:</label>
+            <input type="text" id="rua" name="rua" required>
+          </div>
+
+          <div class="form-group">
+            <label for="numero">Número:</label>
+            <input type="text" id="numero" name="numero" required>
+          </div>
+
+          <div class="form-group">
+            <label for="complemento">Complemento:</label>
+            <input type="text" id="complemento" name="complemento">
+          </div>
+
+          <div class="form-group">
+            <label for="bairro">Bairro:</label>
+            <input type="text" id="bairro" name="bairro" required>
+          </div>
+
+          <div class="form-group">
+            <label for="cidade">Cidade:</label>
+            <input type="text" id="cidade" name="cidade" required>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" required>
+              <option value="">Selecione o estado</option>
+              <option value="AC">AC</option><option value="AL">AL</option>
+              <option value="AP">AP</option><option value="AM">AM</option>
+              <option value="BA">BA</option><option value="CE">CE</option>
+              <option value="DF">DF</option><option value="ES">ES</option>
+              <option value="GO">GO</option><option value="MA">MA</option>
+              <option value="MT">MT</option><option value="MS">MS</option>
+              <option value="MG">MG</option><option value="PA">PA</option>
+              <option value="PB">PB</option><option value="PR">PR</option>
+              <option value="PE">PE</option><option value="PI">PI</option>
+              <option value="RJ">RJ</option><option value="RN">RN</option>
+              <option value="RS">RS</option><option value="RO">RO</option>
+              <option value="RR">RR</option><option value="SC">SC</option>
+              <option value="SP">SP</option><option value="SE">SE</option>
+              <option value="TO">TO</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-login">Criar conta</button>
+
+        <div class="divider"><span>ou</span></div>
+        <a href="login.html" class="btn-register">Já tem uma conta</a>
+      </form>
+
+      <div id="mensagem" class="mensagem"></div>
+    </div>
+  </div>
+
+<script>
+const API_URL = "http://localhost:3001";
+
+// Formatação do CPF
+document.getElementById("cpf").addEventListener("input", function(e) {
+  let value = e.target.value.replace(/\D/g, '');
+  
+  if (value.length > 11) {
+    value = value.substring(0, 11);
+  }
+  
+  if (value.length <= 11) {
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  
+  e.target.value = value;
+});
+
+// Formatação do CEP
+document.getElementById("cep").addEventListener("input", function(e) {
+  let value = e.target.value.replace(/\D/g, '');
+  
+  if (value.length > 8) {
+    value = value.substring(0, 8);
+  }
+  
+  if (value.length > 5) {
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+  }
+  
+  e.target.value = value;
+});
+
+document.getElementById("registerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  
+  const user = {
+    name: document.getElementById('name').value.trim(),
+    cpf: document.getElementById('cpf').value.replace(/\D/g, ''),
+    birthdate: document.getElementById('birthdate').value,
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value,
+    cidade: document.getElementById('cidade').value.trim(),
+    estado: document.getElementById('estado').value,
+    rua: document.getElementById('rua').value.trim(),
+    numero: document.getElementById('numero').value.trim(),
+    complemento: document.getElementById('complemento').value.trim(),
+    bairro: document.getElementById('bairro').value.trim(),
+    cep: document.getElementById('cep').value.replace(/\D/g, '')
+  };
+
+  // Validações
+  if (user.cpf.length !== 11) {
+    alert("CPF deve ter 11 dígitos");
+    return;
+  }
+
+  if (user.cep.length !== 8) {
+    alert("CEP deve ter 8 dígitos");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(user)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Cadastro realizado com sucesso!");
+      window.location.href = "../loja/index.html";
+    } else {
+      alert(data.error || "Erro no cadastro");
+    }
+  } catch (err) {
+    alert("Falha na conexão com o servidor");
+    console.error(err);
+  }
+});
+
+// Auto-preenche com ViaCEP
+document.getElementById("cep").addEventListener("blur", async () => {
+  const cepVal = document.getElementById('cep').value.replace(/\D/g, "");
+  if (cepVal.length !== 8) return;
+  
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${cepVal}/json/`);
+    const d = await r.json();
+    if (!d.erro) {
+      document.getElementById('cidade').value = d.localidade;
+      document.getElementById('estado').value = d.uf;
+      document.getElementById('rua').value = d.logradouro;
+      document.getElementById('bairro').value = d.bairro;
+    }
+  } catch (error) {
+    console.error("Erro ao buscar CEP:", error);
+  }
+});
+</script>
+</body>
+</html>

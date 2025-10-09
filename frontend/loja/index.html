@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dream Donuts - Loja</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="header">
+  <div class="container">
+    <div class="logo"><h1>🍩 Dream Donuts</h1></div>
+
+    <nav class="nav">
+      <!-- Botões Login/Cadastro -->
+      <div class="auth-buttons" id="authButtons">
+        <button class="btn-auth" onclick="location.href='../auth/login.html'">Login</button>
+        <button class="btn-auth" onclick="location.href='../auth/register.html'">Criar Conta</button>
+      </div>
+
+      <!-- Informações do usuário (inicialmente escondido) -->
+      <div class="user-info" id="userInfo" style="display:none; align-items: center; gap: 10px;">
+        <span id="nomeUsuario"></span>
+
+        <!-- Botão Admin (oculto por padrão) -->
+        <a id="btnAdmin" href="../admin/admin.html" class="btn-admin" style="display:none; margin-left:8px;">
+          ⚙️ Administração
+        </a>
+
+        <button id="btnLogout" class="btn-logout" style="margin-left:8px;">Sair</button>
+      </div>
+
+      <!-- Ícone do carrinho -->
+      <div class="cart-icon" onclick="toggleCarrinho()">🛒 <span id="cartCount">0</span></div>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+  <div class="container">
+    <!-- Filtros -->
+    <section class="filters">
+      <h2>Categorias</h2>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-categoria="todos">Todos</button>
+        <!-- Os botões das categorias serão inseridos aqui dinamicamente via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Produtos -->
+    <section class="products">
+      <h2>Nossos Donuts</h2>
+      <div id="productGrid" class="product-grid"></div>
+    </section>
+  </div>
+</main>
+
+<!-- Carrinho lateral -->
+<div id="cartSidebar" class="cart-sidebar">
+  <div class="cart-header">
+    <h3>🛒 Seu Carrinho</h3>
+    <button class="close-cart" onclick="toggleCarrinho()">✕</button>
+  </div>
+  <div class="cart-content">
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><strong>Total: R$ <span id="cartTotal">0,00</span></strong></div>
+      <!-- botão oculto por padrão; só aparece se usuário logado e carrinho não vazio -->
+      <button id="btnFinalizarPedido" class="btn-finalizar" onclick="finalizarPedido()" style="display:none">
+        Ir para Pagamento
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="cartOverlay" class="cart-overlay" onclick="toggleCarrinho()"></div>
+
+<!-- Modal de Confirmação -->
+<div id="modalConfirmacao" class="modal">
+  <div class="modal-content">
+    <h3>Pedido Realizado!</h3>
+    <p>Seu pedido foi realizado com sucesso!</p>
+    <button onclick="fecharModal()" class="btn-ok">OK</button>
+  </div>
+</div>
+<div id="modalOverlay" class="modal-overlay" onclick="fecharModal()"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

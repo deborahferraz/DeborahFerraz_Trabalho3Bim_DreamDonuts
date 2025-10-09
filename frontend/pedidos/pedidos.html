@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD - Pedidos</title>
+  <link rel="stylesheet" href="/pedidos/pedidos.css">
+</head>
+
+<body>
+  <header>
+    <div class="header-content">
+      <h1>CRUD Pedidos</h1>
+      <div class="header-buttons">
+        <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+        <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Busca e Ações -->
+    <section class="search-actions-section">
+      <h2>Gerenciar Pedidos</h2>
+      <div class="search-actions-container">
+        <div class="search-group">
+          <label for="buscar-id">Buscar por ID:</label>
+          <input type="number" id="buscar-id" placeholder="ID do pedido">
+          <button onclick="buscarPedido()" class="btn-search">Buscar</button>
+          <button onclick="cancelarBusca()" class="btn-cancel">Cancelar</button>
+        </div>
+        
+        <div class="actions-group">
+          <button class="btn-edit" onclick="modoEditar()" id="btn-alterar" style="display: none;">Alterar Status</button>
+          <button class="btn-delete" onclick="excluirPedido()" id="btn-excluir" style="display: none;">Excluir</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário -->
+    <section>
+      <h2>Dados do Pedido</h2>
+      <form id="form-pedido">
+        <input type="hidden" id="id_pedido" name="id_pedido">
+
+        <fieldset>
+          <legend>Informações do Pedido</legend>
+
+          <div class="form-group">
+            <label>ID do Pedido:</label>
+            <input type="text" id="display_id" disabled class="id-display">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="usuario_id">ID do Usuário:</label>
+              <input type="number" id="usuario_id" name="usuario_id" disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="nome_usuario">Nome do Usuário:</label>
+              <input type="text" id="nome_usuario" disabled>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="status_pedido">Status:</label>
+            <select id="status_pedido" name="status_pedido" disabled>
+              <option value="pendente">Pendente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="preparando">Preparando</option>
+              <option value="saiu_entrega">Saiu para Entrega</option>
+              <option value="entregue">Entregue</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="valor_total">Valor Total:</label>
+            <input type="text" id="valor_total" disabled class="money-display">
+          </div>
+
+          <div class="form-group">
+            <label for="data_pedido">Data do Pedido:</label>
+            <input type="text" id="data_pedido" disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="observacoes">Observações:</label>
+            <textarea id="observacoes" name="observacoes" rows="3" disabled></textarea>
+          </div>
+        </fieldset>
+
+        <!-- Endereço de Entrega -->
+        <fieldset>
+          <legend>Endereço de Entrega</legend>
+          <div id="endereco-info" class="endereco-info">
+            <!-- Endereço carregado via JavaScript -->
+          </div>
+        </fieldset>
+
+        <!-- Itens do Pedido -->
+        <fieldset>
+          <legend>Itens do Pedido</legend>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Preço Unitário</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="itens-pedido">
+                <!-- Itens carregados dinamicamente -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
+                  <td id="total-pedido" style="font-weight: bold;">R$ 0,00</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <!-- Lista -->
+    <section>
+      <h2>Lista de Pedidos</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuário</th>
+              <th>Status</th>
+              <th>Valor Total</th>
+              <th>Data</th>
+              <th>Forma Pagamento</th>
+            </tr>
+          </thead>
+          <tbody id="lista-pedidos">
+            <!-- Dados carregados dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 CRUD Pedidos</p>
+  </footer>
+
+  <!-- Container para mensagens flutuantes -->
+  <div id="messageContainer"></div>
+
+  <style>
+    /* Mensagens flutuantes */
+    .mensagem-flutuante {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .mensagem-flutuante.error {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .mensagem-flutuante.success {
+      background: linear-gradient(135deg, #28a745, #218838);
+    }
+
+    .mensagem-flutuante.info {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+
+    .mensagem-flutuante.warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800);
+      color: black;
+    }
+
+    .money-display {
+      background-color: #e9f7ef !important;
+      color: #2d4a2d !important;
+      font-weight: bold;
+      border-color: #2d4a2d !important;
+    }
+
+    .endereco-info {
+      background: #f8fff8;
+      border: 1px solid #4a7c59;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+    }
+
+    .endereco-info p {
+      margin: 5px 0;
+      color: #2d4a2d;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <script src="/pedidos/pedidos.js" defer></script>
+</body>
+</html>

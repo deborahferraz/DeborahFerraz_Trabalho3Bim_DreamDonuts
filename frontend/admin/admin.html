@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - Donut Shop</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>🍩 Donut Shop - Admin</h1>
+            </div>
+            
+            <nav class="nav">
+                <div class="user-info">
+                    <span id="nomeUsuario">Carregando...</span>
+                    <button id="btnLogout" class="btn-logout">Sair</button>
+                </div>
+                
+                <a href="../loja/index.html" class="btn-loja">🛒 Ir para Loja</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <h2>Painel de Administração</h2>
+            
+            <!-- Menu de CRUDs -->
+            <div class="crud-menu">
+                <div class="crud-card" onclick="abrirCrud('categorias')">
+                    <div class="crud-icon">📂</div>
+                    <h3>Categorias</h3>
+                    <p>Gerenciar categorias de produtos</p>
+                </div>
+                
+                <div class="crud-card" onclick="abrirCrud('produto')">
+    <div class="crud-icon">🍩</div>
+    <h3>Produtos</h3>
+    <p>Gerenciar donuts e produtos</p>
+</div>
+
+                
+                <div class="crud-card" onclick="abrirCrud('usuarios')">
+                    <div class="crud-icon">👥</div>
+                    <h3>Usuários</h3>
+                    <p>Gerenciar usuários do sistema</p>
+                </div>
+                
+                <div class="crud-card" onclick="abrirCrud('pedidos')">
+                    <div class="crud-icon">📋</div>
+                    <h3>Pedidos</h3>
+                    <p>Gerenciar pedidos e itens</p>
+                </div>
+                
+                <div class="crud-card" onclick="abrirCrud('enderecos')">
+                    <div class="crud-icon">🏠</div>
+                    <h3>Endereços</h3>
+                    <p>Gerenciar endereços dos usuários</p>
+                </div>
+                
+                <div class="crud-card" onclick="abrirCrud('formas-pagamento')">
+                    <div class="crud-icon">💳</div>
+                    <h3>Formas de Pagamento</h3>
+                    <p>Gerenciar formas de pagamento</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para CRUDs -->
+    <div id="crudModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">CRUD</h3>
+                <button class="close-modal" onclick="fecharModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="crud-actions">
+                    <button id="btnNovo" class="btn-primary" onclick="novoItem()">+ Novo</button>
+                    <button id="btnAtualizar" class="btn-secondary" onclick="carregarItens()">🔄 Atualizar</button>
+                </div>
+                
+                <!-- Tabela de dados -->
+                <div class="table-container">
+                    <table id="dataTable" class="data-table">
+                        <thead id="tableHead"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Formulário -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="formTitle">Formulário</h3>
+                <button class="close-modal" onclick="fecharFormModal()">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="itemForm" class="item-form">
+                    <div id="formFields"></div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary" onclick="fecharFormModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlays -->
+    <div id="modalOverlay" class="modal-overlay" onclick="fecharModal()"></div>
+    <div id="formOverlay" class="modal-overlay" onclick="fecharFormModal()"></div>
+
+    <script>
+  function abrirCrud(pagina) {
+  if (pagina === "produto") {
+    window.location.href = `../produto/produto.html`; // ✅ sobe uma pasta
+  }
+}
+</script>
+
+    <script src="admin.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD - Endereços</title>
+  <link rel="stylesheet" href="/enderecos/enderecos.css">
+</head>
+
+<body>
+  <header>
+    <div class="header-content">
+      <h1>CRUD Endereços</h1>
+      <div class="header-buttons">
+        <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+        <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Busca e Ações -->
+    <section class="search-actions-section">
+      <h2>Gerenciar Endereços</h2>
+      <div class="search-actions-container">
+        <div class="search-group">
+          <label for="buscar-id">Buscar por ID:</label>
+          <input type="number" id="buscar-id" placeholder="ID do endereço">
+          <button onclick="buscarEndereco()" class="btn-search">Buscar</button>
+          <button onclick="cancelarBusca()" class="btn-cancel">Cancelar</button>
+        </div>
+        
+        <div class="actions-group">
+          <button class="btn-add" onclick="modoAdicionar()" id="btn-adicionar" style="display: none;">Adicionar Endereço</button>
+          <button class="btn-edit" onclick="modoEditar()" id="btn-alterar" style="display: none;">Alterar</button>
+          <button class="btn-delete" onclick="excluirEndereco()" id="btn-excluir" style="display: none;">Excluir</button>
+          <button type="submit" form="form-endereco" class="btn-save" id="btn-salvar" style="display: none;">Salvar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário -->
+    <section>
+      <h2>Dados do Endereço</h2>
+      <form id="form-endereco">
+        <input type="hidden" id="id_endereco" name="id_endereco">
+
+        <fieldset>
+          <legend>Informações do Endereço</legend>
+
+          <div class="form-group">
+            <label>ID do Endereço:</label>
+            <input type="text" id="display_id" disabled class="id-display">
+          </div>
+
+          <div class="form-group">
+            <label for="usuario_id">ID do Usuário:</label>
+            <input type="number" id="usuario_id" name="usuario_id" required disabled>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="rua">Rua:</label>
+              <input type="text" id="rua" name="rua" required disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="numero">Número:</label>
+              <input type="text" id="numero" name="numero" required disabled>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="complemento">Complemento:</label>
+            <input type="text" id="complemento" name="complemento" disabled>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bairro">Bairro:</label>
+              <input type="text" id="bairro" name="bairro" required disabled>
+            </div>
+
+            <div class="form-group">
+              <label for="cidade">Cidade:</label>
+              <input type="text" id="cidade" name="cidade" required disabled>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado:</label>
+              <select id="estado" name="estado" required disabled>
+                <option value="">Selecione</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cep">CEP:</label>
+              <input type="text" id="cep" name="cep" maxlength="9" placeholder="00000-000" required disabled>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <!-- Lista -->
+    <section>
+      <h2>Lista de Endereços</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuário ID</th>
+              <th>Nome Usuário</th>
+              <th>Rua</th>
+              <th>Número</th>
+              <th>Bairro</th>
+              <th>Cidade</th>
+              <th>Estado</th>
+              <th>CEP</th>
+            </tr>
+          </thead>
+          <tbody id="lista-enderecos">
+            <!-- Dados carregados dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 CRUD Endereços</p>
+  </footer>
+
+  <!-- Container para mensagens flutuantes -->
+  <div id="messageContainer"></div>
+
+  <style>
+    /* Mensagens flutuantes */
+    .mensagem-flutuante {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .mensagem-flutuante.error {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .mensagem-flutuante.success {
+      background: linear-gradient(135deg, #28a745, #218838);
+    }
+
+    .mensagem-flutuante.info {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+
+    .mensagem-flutuante.warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800);
+      color: black;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <script src="/enderecos/enderecos.js" defer></script>
+</body>
+</html>

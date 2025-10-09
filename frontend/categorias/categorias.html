@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD - Categorias</title>
+  <link rel="stylesheet" href="/categorias/categorias.css">
+</head>
+
+<body>
+  <header>
+    <div class="header-content">
+      <h1>CRUD Categorias</h1>
+      <div class="header-buttons">
+        <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+        <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Busca e Ações -->
+    <section class="search-actions-section">
+      <h2>Gerenciar Categorias</h2>
+      <div class="search-actions-container">
+        <div class="search-group">
+          <label for="buscar-id">Buscar por ID:</label>
+          <input type="number" id="buscar-id" placeholder="ID da categoria">
+          <button onclick="buscarCategoria()" class="btn-search">Buscar</button>
+          <button onclick="cancelarBusca()" class="btn-cancel">Cancelar</button>
+        </div>
+        
+        <div class="actions-group">
+          <button class="btn-add" onclick="modoAdicionar()" id="btn-adicionar" style="display: none;">Adicionar Categoria</button>
+          <button class="btn-edit" onclick="modoEditar()" id="btn-alterar" style="display: none;">Alterar</button>
+          <button class="btn-delete" onclick="excluirCategoria()" id="btn-excluir" style="display: none;">Excluir</button>
+          <button type="submit" form="form-categoria" class="btn-save" id="btn-salvar" style="display: none;">Salvar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formulário -->
+    <section>
+      <h2>Dados da Categoria</h2>
+      <form id="form-categoria">
+        <input type="hidden" id="id_categoria" name="id_categoria">
+
+        <fieldset>
+          <legend>Informações da Categoria</legend>
+
+          <div class="form-group">
+            <label>ID da Categoria:</label>
+            <input type="text" id="display_id" disabled class="id-display">
+          </div>
+
+          <div class="form-group">
+            <label for="nome_categoria">Nome:</label>
+            <input type="text" id="nome_categoria" name="nome_categoria" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="descricao_categoria">Descrição:</label>
+            <textarea id="descricao_categoria" name="descricao_categoria" disabled></textarea>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <!-- Lista -->
+    <section>
+      <h2>Lista de Categorias</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+          <tbody id="lista-categorias">
+            <!-- Dados carregados dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 CRUD Categorias</p>
+  </footer>
+
+  <div id="messageContainer" class="message-container"></div>
+
+  <script src="/categorias/categorias.js" defer></script>
+</body>
+</html>
