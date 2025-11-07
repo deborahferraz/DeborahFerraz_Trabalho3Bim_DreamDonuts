@@ -6,13 +6,15 @@
   <title>Pagamento - Dream Donuts</title>
   <link rel="stylesheet" href="/loja/style.css" />
   <link rel="stylesheet" href="pagamento.css" />
+  <!-- Biblioteca QR Code correta -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 <header class="header">
   <div class="container">
     <div class="logo"><h1>🍩 Dream Donuts - Pagamento</h1></div>
     <nav class="nav">
-      <a href="/" class="btn-back">← Voltar à Loja</a>
+      <a href="/loja/index.html" class="btn-back">← Voltar à Loja</a>
     </nav>
   </div>
 </header>
@@ -36,9 +38,9 @@
         <!-- Informação de Endereço -->
         <div id="addressInfo" class="address-info" style="display: none;">
           <div class="form-group">
-            <label style="color: #2d4a2d; font-weight: bold;">📦 Endereço Cadastrado:</label>
-            <div id="savedAddress" style="background: #f0fff0; padding: 10px; border-radius: 5px; margin-bottom: 10px;"></div>
-            <button type="button" id="btnChangeAddress" class="btn-change" style="background: #ffc107; color: black; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer;">
+            <label>📦 Endereço Cadastrado:</label>
+            <div id="savedAddress"></div>
+            <button type="button" id="btnChangeAddress" class="btn-change">
               Usar outro endereço
             </button>
           </div>
@@ -87,14 +89,15 @@
 
           <div id="pixFields" class="pix-fields" style="display: none;">
             <div class="pix-info">
-              <p>Após confirmar o pedido, você receberá o código PIX para pagamento.</p>
+              <p>💡 <strong>Pagamento PIX</strong> - Após confirmar o pedido, será gerado um QR Code com o valor exato do seu pedido.</p>
+              <p style="font-size: 0.9rem; color: #666;">O valor será preenchido automaticamente no app do seu banco.</p>
             </div>
           </div>
 
           <div id="cashFields" class="cash-fields" style="display: none;">
             <div class="form-group">
               <label for="cashAmount">Valor para Troco (opcional):</label>
-              <input type="number" id="cashAmount" step="0.01" placeholder="Ex: 50.00">
+              <input type="number" id="cashAmount" step="0.01" min="0" placeholder="Ex: 50.00">
             </div>
           </div>
 
@@ -118,13 +121,60 @@
   <div class="modal-content">
     <h3>Pedido Confirmado!</h3>
     <p id="modalMessage">Seu pedido foi realizado com sucesso!</p>
+    
+    <!-- Área do PIX com QR Code -->
     <div id="pixCode" class="pix-code" style="display: none;">
-      <p><strong>Código PIX:</strong></p>
-      <div class="pix-code-display">
-        <code id="pixCodeText"></code>
-        <button onclick="copiarPix()" class="btn-copy">Copiar</button>
+      <div class="pix-header">
+        <h4>💰 Pagamento via PIX</h4>
+        <p>Escaneie o QR Code abaixo - o valor de <strong>R$ <span id="pixAmount">0,00</span></strong> já está pré-definido!</p>
+      </div>
+      
+      <div class="pix-amount">
+        <strong>Valor: R$ <span id="pixAmountDisplay">0,00</span></strong>
+      </div>
+      
+      <div class="qrcode-container">
+        <div id="qrcode"></div>
+      </div>
+      
+      <div class="pix-details">
+        <div class="pix-info-item">
+          <strong>Chave PIX:</strong>
+          <span>44997353860</span>
+        </div>
+        <div class="pix-info-item">
+          <strong>Nome:</strong>
+          <span>Deborah Ferraz Pontes</span>
+        </div>
+        <div class="pix-info-item">
+          <strong>Valor:</strong>
+          <span>R$ <span id="pixValueDisplay">0,00</span></span>
+        </div>
+        <div class="pix-info-item">
+          <strong>Banco:</strong>
+          <span>Inter</span>
+        </div>
+        <div class="pix-info-item">
+          <strong>Cidade:</strong>
+          <span>Peabiru - PR</span>
+        </div>
+      </div>
+      
+      <div class="pix-copy-section">
+        <p><strong>Código PIX Copia e Cola (já com o valor):</strong></p>
+        <div class="pix-code-display">
+          <code id="pixCodeText"></code>
+          <button onclick="copiarPix()" class="btn-copy">Copiar</button>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1rem; padding: 1rem; background: #e8f5e8; border-radius: 8px; border: 1px solid #4a7c59;">
+        <p style="margin: 0; color: #2d4a2d; font-size: 0.9rem;">
+          <strong>✅ Pronto!</strong> O QR Code acima já contém o valor exato do seu pedido. Basta escanear com seu app bancário.
+        </p>
       </div>
     </div>
+    
     <button onclick="fecharModal()" class="btn-ok">OK</button>
   </div>
 </div>

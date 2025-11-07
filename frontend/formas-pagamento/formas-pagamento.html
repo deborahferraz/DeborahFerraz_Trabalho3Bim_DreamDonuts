@@ -14,8 +14,8 @@
         <div class="header-content">
             <h1>Gerenciar Formas de Pagamento</h1>
             <div class="header-buttons">
-                <a href="../admin/admin.html" class="btn-back">← Voltar ao Admin</a>
-                <a href="../loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
+                <a href="/admin/admin.html" class="btn-back">← Voltar ao Admin</a>
+                <a href="/loja/index.html" class="btn-loja">🛒 Voltar para a Loja</a>
             </div>
         </div>
     </header>
@@ -83,7 +83,11 @@
                             <th>Ativo</th>
                         </tr>
                     </thead>
-                    <tbody id="lista-formas-pagamento"></tbody>
+                    <tbody id="lista-formas-pagamento">
+                        <tr>
+                            <td colspan="3" style="text-align: center;">Carregando formas de pagamento...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -96,6 +100,6 @@
     <!-- Container para mensagens flutuantes -->
     <div id="messageContainer"></div>
 
-    <script src="forma_pagamento.js?v=1.0"></script>
+    <script src="forma_pagamento.js?v=1.3"></script>
 </body>
 </html>

@@ -17,5 +17,13 @@ router.put('/:id/status', pedidoController.atualizarStatusPedido);
 // Listar pedidos de um usuário
 router.get('/usuario/:usuario_id', pedidoController.listarPedidosUsuario);
 
-module.exports = router;
+// Deletar pedido
+router.delete('/:id', pedidoController.deletarPedido);
 
+// Rota de debug (opcional)
+router.get('/debug/todos', pedidoController.debugPedidos);
+
+// Rota para criar coluna data_atualizacao (opcional)
+router.get('/debug/criar-coluna', pedidoController.criarColunaDataAtualizacao);
+
+module.exports = router;

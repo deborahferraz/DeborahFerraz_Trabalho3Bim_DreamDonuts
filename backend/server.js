@@ -86,36 +86,50 @@ app.get('/auth/verificar', (req, res) => {
   res.json({ logged: false });
 });
 
-// -------- Servir páginas dos CRUDs --------
+// -------- API de formas de pagamento - CORRIGIDA --------
+app.get('/forma_pagamento', async (_req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id_forma_pagamento, nome_forma_pagamento, ativo 
+       FROM formas_pagamento 
+       ORDER BY id_forma_pagamento`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao carregar formas de pagamento:', err);
+    res.status(500).json({ error: 'Erro ao carregar formas de pagamento' });
+  }
+});
+
+// -------- Servir páginas dos CRUDs - ATUALIZADO --------
 app.use('/usuarios', express.static(path.join(__dirname, '../frontend/usuarios')));
 app.use('/enderecos', express.static(path.join(__dirname, '../frontend/enderecos')));
-app.use('/forma_pagamento', express.static(path.join(__dirname, '../frontend/forma_pagamento')));
 app.use('/pagamento', express.static(path.join(__dirname, '../frontend/pagamento')));
-app.use('/pedido', express.static(path.join(__dirname, '../frontend/pedido')));
+app.use('/formas-pagamento', express.static(path.join(__dirname, '../frontend/formas-pagamento')));
 
-// -------- Rota PRINCIPAL para forma_pagamento --------
-app.get('/forma_pagamento', (_req, res) => {
-  console.log('📁 Servindo forma_pagamento.html');
-  res.sendFile(path.join(__dirname, '../frontend/forma_pagamento/forma_pagamento.html'));
-});
-
-// -------- Rotas de fallback para evitar cache --------
+// -------- Rota PRINCIPAL para formas-pagamento --------
 app.get('/formas-pagamento', (_req, res) => {
-  console.log('🔄 Redirecionando de formas-pagamento para forma_pagamento');
-  res.redirect('/forma_pagamento');
+  console.log('📁 Servindo formas-pagamento.html');
+  res.sendFile(path.join(__dirname, '../frontend/formas-pagamento/formas-pagamento.html'));
 });
 
-app.get('/formas-pagamento.html', (_req, res) => {
-  console.log('🔄 Redirecionando de formas-pagamento.html');
-  res.redirect('/forma_pagamento');
+// -------- Rotas de fallback --------
+app.get('/forma_pagamento', (_req, res) => {
+  console.log('🔄 Redirecionando de forma_pagamento para formas-pagamento');
+  res.redirect('/formas-pagamento');
+});
+
+app.get('/forma_pagamento.html', (_req, res) => {
+  console.log('🔄 Redirecionando de forma_pagamento.html');
+  res.redirect('/formas-pagamento');
 });
 
 app.get('/pagamento', (_req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pagamento/pagamento.html'));
 });
 
-app.get('/pedido', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pedido/pedido.html'));
+app.get('/pedidos', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/pedidos/pedidos.html'));
 });
 
 // -------- API de usuários --------
@@ -126,14 +140,13 @@ app.use('/produto', require('./routes/produtoRoutes'));
 app.use('/categoria', require('./routes/categoriaRoutes'));
 app.use('/pedido', require('./routes/pedidoRoutes'));
 app.use('/endereco', require('./routes/enderecoRoutes'));
-app.use('/forma_pagamento', require('./routes/forma_pagamentoRoutes'));
+app.use('/api/formas_pagamento', require('./routes/forma_pagamentoRoutes'));
 
 // -------- Rota principal (loja) --------
 app.use(express.static(path.join(__dirname, '../frontend/loja')));
 app.get('/', (_req, res) =>
   res.sendFile(path.join(__dirname, '../frontend/loja/index.html'))
 );
-
 
 // -------- Produtos para loja --------
 app.get('/donuts', async (_req, res) => {
@@ -166,13 +179,19 @@ app.get('/health', async (_req, res) => {
 
 // -------- Erros --------
 app.use((err, _req, res, _next) => {
-  console.error('Erro não tratado:', err);
-  res.status(500).json({ error: 'Erro interno do servidor' });
+  console.error('❌ Erro não tratado:', err.message);
+  res.status(500).json({ 
+    error: 'Erro interno do servidor',
+    message: err.message 
+  });
 });
 
 app.use((req, res) => {
   console.log(`❌ Rota não encontrada: ${req.originalUrl}`);
-  res.status(404).json({ error: 'Rota não encontrada', rota: req.originalUrl });
+  res.status(404).json({ 
+    error: 'Rota não encontrada', 
+    rota: req.originalUrl 
+  });
 });
 
 // -------- Inicialização --------
@@ -182,6 +201,9 @@ app.use((req, res) => {
     console.error('❌ Falha na conexão com PostgreSQL');
     process.exit(1);
   }
+  
+  console.log('✅ Banco de dados conectado com sucesso!');
+  
   const PORT = process.env.PORT || PORT_FIXA;
   app.listen(PORT, () =>
     console.log(`🚀 Servidor rodando em http://${HOST}:${PORT}`)

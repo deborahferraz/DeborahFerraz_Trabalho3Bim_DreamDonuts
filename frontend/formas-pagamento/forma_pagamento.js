@@ -6,7 +6,7 @@ let modoAtual = 'visualizacao';
 
 // -------- DEBUG DE CARREGAMENTO --------
 console.log('🔧 Inicializando CRUD Formas de Pagamento');
-console.log('📡 URL da API:', '/forma_pagamento');
+console.log('📡 URL da API:', '/api/formas_pagamento');
 
 // -------- CONTROLE DE BOTÕES --------
 function atualizarBotoes() {
@@ -51,7 +51,7 @@ async function buscarFormaPagamento() {
     }
 
     try {
-        const response = await fetch(`/forma_pagamento/${id}`);
+        const response = await fetch(`/api/formas_pagamento/${id}`);
         console.log('📡 Response status:', response.status);
         
         if (!response.ok) {
@@ -172,7 +172,7 @@ form.addEventListener('submit', async (e) => {
         let response;
         if (modoAtual === 'edicao') {
             console.log('🔄 Editando forma de pagamento existente');
-            response = await fetch(`/forma_pagamento/${formaPagamentoAtual.id_forma_pagamento}`, {
+            response = await fetch(`/api/formas_pagamento/${formaPagamentoAtual.id_forma_pagamento}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -181,7 +181,7 @@ form.addEventListener('submit', async (e) => {
             });
         } else {
             console.log('🆕 Adicionando nova forma de pagamento');
-            response = await fetch('/forma_pagamento', {
+            response = await fetch('/api/formas_pagamento', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -217,7 +217,7 @@ async function excluirFormaPagamento() {
     if (!formaPagamentoAtual || !confirm('Tem certeza que deseja excluir esta forma de pagamento?')) return;
 
     try {
-        const response = await fetch(`/forma_pagamento/${formaPagamentoAtual.id_forma_pagamento}`, {
+        const response = await fetch(`/api/formas_pagamento/${formaPagamentoAtual.id_forma_pagamento}`, {
             method: 'DELETE'
         });
         
@@ -241,7 +241,7 @@ async function excluirFormaPagamento() {
 async function carregarFormasPagamento() {
     console.log('📋 Carregando lista de formas de pagamento...');
     try {
-        const response = await fetch('/forma_pagamento');
+        const response = await fetch('/api/formas_pagamento');
         console.log('📡 Status da lista:', response.status);
         
         if (!response.ok) {
@@ -251,12 +251,12 @@ async function carregarFormasPagamento() {
         }
 
         const formasPagamento = await response.json();
-        console.log('✅ Formas de pagamento carregadas:', formasPagamento.length);
+        console.log('✅ Formas de pagamento carregadas:', formasPagamento);
         
         const tabela = document.getElementById('lista-formas-pagamento');
         tabela.innerHTML = '';
 
-        if (formasPagamento.length === 0) {
+        if (!formasPagamento || formasPagamento.length === 0) {
             tabela.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma forma de pagamento cadastrada</td></tr>';
             return;
         }

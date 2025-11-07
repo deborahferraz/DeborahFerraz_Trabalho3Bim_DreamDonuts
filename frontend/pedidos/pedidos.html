@@ -89,6 +89,12 @@
             <label for="observacoes">Observações:</label>
             <textarea id="observacoes" name="observacoes" rows="3" disabled></textarea>
           </div>
+
+          <!-- BOTÕES DE AÇÃO DO FORMULÁRIO - ADICIONADOS -->
+          <div class="form-actions" id="form-actions" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e0f2e0;">
+            <button type="submit" class="btn-save">💾 Salvar Alterações</button>
+            <button type="button" class="btn-cancel" onclick="cancelarEdicao()">❌ Cancelar</button>
+          </div>
         </fieldset>
 
         <!-- Endereço de Entrega -->
@@ -207,6 +213,30 @@
     .endereco-info p {
       margin: 5px 0;
       color: #2d4a2d;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #28a745, #218838);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+      background: linear-gradient(135deg, #218838, #1e7e34);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
     }
 
     @keyframes slideIn {
