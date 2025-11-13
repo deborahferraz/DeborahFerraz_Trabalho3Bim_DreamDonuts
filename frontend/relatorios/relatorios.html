@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios Gerenciais</title>
+    <link rel="stylesheet" href="relatorios.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho com botões de navegação -->
+        <div class="header-buttons">
+            <button class="btn-voltar" onclick="voltarParaLoja()">← Voltar para Loja</button>
+            <button class="btn-voltar" onclick="voltarParaCrud()">← Voltar para CRUD</button>
+            <button class="btn-imprimir" onclick="imprimirRelatorios()">🖨️ Imprimir Relatórios</button>
+        </div>
+
+        <h1>Relatórios Gerenciais</h1>
+
+        <!-- Relatório de Vendas por Período -->
+        <div class="relatorio-section">
+            <h2>Relatório de Vendas por Período</h2>
+            
+            <div class="filtros">
+                <div class="filtro-group">
+                    <label for="mes-vendas">Mês:</label>
+                    <select id="mes-vendas">
+                        <option value="">Selecione o mês</option>
+                        <option value="1">Janeiro</option>
+                        <option value="2">Fevereiro</option>
+                        <option value="3">Março</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Maio</option>
+                        <option value="6">Junho</option>
+                        <option value="7">Julho</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                </div>
+                
+                <div class="filtro-group">
+                    <label for="ano-vendas">Ano:</label>
+                    <select id="ano-vendas">
+                        <option value="">Selecione o ano</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                
+                <div class="filtro-group">
+                    <label>&nbsp;</label>
+                    <button onclick="gerarRelatorioVendas()">Gerar Relatório</button>
+                </div>
+
+                <div class="filtro-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-exportar" onclick="imprimirRelatorioEspecifico('vendas')">Imprimir Este Relatório</button>
+                </div>
+            </div>
+            
+            <div id="relatorio-vendas-container">
+                <p class="mensagem-aguardando">Selecione o mês e ano, depois clique em "Gerar Relatório"</p>
+            </div>
+        </div>
+
+        <!-- Produtos Mais Vendidos -->
+        <div class="relatorio-section">
+            <h2>Produtos Mais Vendidos</h2>
+            
+            <div class="filtros">
+                <div class="filtro-group">
+                    <label for="data-inicio">Data Início:</label>
+                    <input type="date" id="data-inicio">
+                </div>
+                
+                <div class="filtro-group">
+                    <label for="data-fim">Data Fim:</label>
+                    <input type="date" id="data-fim">
+                </div>
+                
+                <div class="filtro-group">
+                    <label>&nbsp;</label>
+                    <button onclick="gerarRelatorioProdutos()">Gerar Relatório</button>
+                </div>
+
+                <div class="filtro-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-exportar" onclick="imprimirRelatorioEspecifico('produtos')">Imprimir Este Relatório</button>
+                </div>
+            </div>
+            
+            <div id="relatorio-produtos-container">
+                <p class="mensagem-aguardando">Selecione o período e clique em "Gerar Relatório"</p>
+            </div>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="acoes-footer">
+            <button class="btn-rapido" onclick="gerarRelatorioRapido()">Relatório Rápido (30 dias)</button>
+            <button class="btn-limpar" onclick="limparDados()">Limpar Dados de Teste</button>
+            <button class="btn-imprimir" onclick="imprimirRelatorios()">🖨️ Imprimir Todos os Relatórios</button>
+        </div>
+    </div>
+
+    <script src="relatorios.js"></script>
+</body>
+</html>

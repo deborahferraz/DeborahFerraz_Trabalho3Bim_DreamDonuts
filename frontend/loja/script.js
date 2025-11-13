@@ -6,7 +6,7 @@ let produtos = [];
 let carrinho = [];
 let usuarioLogado = null;
 
-// Elementos do DOM (script incluído no final do body -> elementos já existem)
+// Elementos do DOM
 const productGrid = document.getElementById('productGrid');
 const cartSidebar = document.getElementById('cartSidebar');
 const cartOverlay = document.getElementById('cartOverlay');
@@ -23,58 +23,82 @@ const modalOverlay = document.getElementById('modalOverlay');
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     configurarEventListeners();
-    await verificarLogin();        // verifica sessão primeiro (para mostrar admin rápido)
-    await carregarCategorias();    // carregar categorias antes dos produtos
+    await verificarLogin();
+    await carregarCategorias();
     await carregarProdutos();
     carregarCarrinhoLocalStorage();
 });
 
-// Verificar se o usuário está logado (e se é admin)
+// -------- VERIFICAÇÃO DE LOGIN - CORRIGIDA --------
 async function verificarLogin() {
     try {
         const response = await fetch(`${API_BASE_URL}/auth/verificar`, {
             credentials: 'include'
         });
-        // tenta parsear JSON com segurança
-        let data = {};
-        try { data = await response.json(); } catch (_) { data = {}; }
-
-        // backend usa "logged" (conforme seu server.js). aceitamos "logged" ou "logado"
-        const isLogged = data.logged ?? data.logado ?? false;
-
-        // pega nome/id/papel em possíveis formatos
-        const nome = data.nome_usuario ?? data.nome ?? (data.usuario && (data.usuario.nome_usuario || data.usuario.nome)) ?? null;
-        const id = data.id_usuario ?? data.id ?? (data.usuario && (data.usuario.id_usuario || data.usuario.id)) ?? null;
-        const papel = data.papel ?? (data.usuario && data.usuario.papel) ?? null;
-
-        if (isLogged) {
-            usuarioLogado = { id_usuario: id, nome_usuario: nome, papel };
-            // header
-            if (nome) nomeUsuario.textContent = `Bem-vindo, ${nome}!`;
-            else nomeUsuario.textContent = 'Bem-vindo!';
+        
+        const data = await response.json();
+        
+        if (data.logged && data.id_usuario) {
+            usuarioLogado = {
+                id_usuario: data.id_usuario,
+                nome_usuario: data.nome_usuario,
+                email_usuario: data.email_usuario,
+                papel: data.papel || 'cliente'
+            };
+            
+            // Atualizar header
+            nomeUsuario.textContent = `Bem-vindo, ${usuarioLogado.nome_usuario}!`;
             document.getElementById('authButtons').style.display = 'none';
             document.getElementById('userInfo').style.display = 'flex';
 
-            // mostra botão admin apenas se papel === 'admin'
-            if (papel === 'admin' && btnAdmin) {
+            // Mostrar botão admin apenas se for administrador
+            if (usuarioLogado.papel === 'admin' && btnAdmin) {
                 btnAdmin.style.display = 'inline-block';
             } else if (btnAdmin) {
                 btnAdmin.style.display = 'none';
             }
         } else {
             usuarioLogado = null;
-            nomeUsuario.textContent = 'Visitante';
             document.getElementById('authButtons').style.display = 'flex';
             document.getElementById('userInfo').style.display = 'none';
             if (btnAdmin) btnAdmin.style.display = 'none';
         }
 
-        // atualiza botão finalizar conforme carrinho/usuário
         atualizarCarrinho();
     } catch (error) {
         console.error('Erro ao verificar login:', error);
-        // em caso de erro, garantir que admin fique oculto
+        usuarioLogado = null;
         if (btnAdmin) btnAdmin.style.display = 'none';
+    }
+}
+
+// -------- LOGOUT - CORRIGIDO --------
+async function logout() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/logout`, { 
+            method: 'POST', 
+            credentials: 'include' 
+        });
+        
+        if (response.ok) {
+            // Limpar dados locais
+            localStorage.removeItem('carrinho');
+            carrinho = [];
+            usuarioLogado = null;
+            
+            // Atualizar UI
+            document.getElementById('authButtons').style.display = 'flex';
+            document.getElementById('userInfo').style.display = 'none';
+            if (btnAdmin) btnAdmin.style.display = 'none';
+            
+            atualizarCarrinho();
+            
+            // Recarregar para garantir estado limpo
+            window.location.reload();
+        }
+    } catch (err) {
+        console.error('Erro no logout:', err);
+        alert('Erro ao fazer logout. Tente novamente.');
     }
 }
 
@@ -234,8 +258,16 @@ function atualizarCarrinho() {
     cartItems.innerHTML = '';
 
     if (carrinho.length === 0) {
-        cartItems.innerHTML = `<div class="empty-cart"><p>Seu carrinho está vazio</p><p>Adicione alguns donuts deliciosos!</p></div>`;
-        if (btnFinalizarPedido) { btnFinalizarPedido.style.display = 'none'; btnFinalizarPedido.disabled = true; }
+        cartItems.innerHTML = `
+            <div class="empty-cart">
+                <p>Seu carrinho está vazio</p>
+                <p>Adicione alguns donuts deliciosos!</p>
+            </div>
+        `;
+        if (btnFinalizarPedido) { 
+            btnFinalizarPedido.style.display = 'none'; 
+            btnFinalizarPedido.disabled = true; 
+        }
     } else {
         carrinho.forEach(item => {
             const cartItem = document.createElement('div');

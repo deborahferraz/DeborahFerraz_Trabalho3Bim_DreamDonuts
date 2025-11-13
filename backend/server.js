@@ -8,7 +8,6 @@ const fs = require('fs');
 
 const db = require('./database');
 const authController = require('./controllers/authController');
-const usuarioController = require('./controllers/usuarioController');
 
 const app = express();
 const HOST = 'localhost';
@@ -38,12 +37,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
 app.use(express.json());
 
+// -------- SESSION CONFIG - CORRIGIDA --------
 app.use(
   session({
-    secret: 'donuts-secret-123',
+    name: 'donutshop.sid',
+    secret: 'donuts-secret-123-change-in-production',
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, secure: false, sameSite: 'lax' }
+    cookie: { 
+      httpOnly: true, 
+      secure: false, 
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    }
   })
 );
 
@@ -54,27 +60,49 @@ app.use((req, res, next) => {
     'http://localhost:5500',
     `http://${HOST}:${PORT_FIXA}`
   ];
+  
   if (allowedOrigins.includes(req.headers.origin)) {
     res.header('Access-Control-Allow-Origin', req.headers.origin);
   }
+  
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
+  
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 
+// -------- Middleware de Banco de Dados --------
 app.use((req, _res, next) => {
   req.db = db;
   next();
 });
 
-// -------- Rotas de autenticação --------
+// -------- MIDDLEWARE DE AUTENTICAÇÃO --------
+const requireAuth = (req, res, next) => {
+  if (req.session.user) {
+    next();
+  } else {
+    res.status(401).json({ error: 'Não autorizado' });
+  }
+};
+
+const requireAdmin = (req, res, next) => {
+  if (req.session.user && req.session.user.papel === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Acesso negado. Requer privilégios de administrador.' });
+  }
+};
+
+// -------- Rotas de Autenticação --------
 app.post('/register', authController.registro);
 app.use('/auth', require('./routes/authRoutes'));
 
+// -------- Rota de Verificação de Sessão - CORRIGIDA --------
 app.get('/auth/verificar', (req, res) => {
-  if (req.session?.user) {
+  if (req.session.user) {
     return res.json({
       logged: true,
       id_usuario: req.session.user.id_usuario,
@@ -86,7 +114,7 @@ app.get('/auth/verificar', (req, res) => {
   res.json({ logged: false });
 });
 
-// -------- API de formas de pagamento - CORRIGIDA --------
+// -------- API de formas de pagamento --------
 app.get('/forma_pagamento', async (_req, res) => {
   try {
     const result = await db.query(
@@ -101,27 +129,15 @@ app.get('/forma_pagamento', async (_req, res) => {
   }
 });
 
-// -------- Servir páginas dos CRUDs - ATUALIZADO --------
+// -------- Servir páginas dos CRUDs --------
 app.use('/usuarios', express.static(path.join(__dirname, '../frontend/usuarios')));
 app.use('/enderecos', express.static(path.join(__dirname, '../frontend/enderecos')));
 app.use('/pagamento', express.static(path.join(__dirname, '../frontend/pagamento')));
 app.use('/formas-pagamento', express.static(path.join(__dirname, '../frontend/formas-pagamento')));
 
-// -------- Rota PRINCIPAL para formas-pagamento --------
+// -------- Rotas principais --------
 app.get('/formas-pagamento', (_req, res) => {
-  console.log('📁 Servindo formas-pagamento.html');
   res.sendFile(path.join(__dirname, '../frontend/formas-pagamento/formas-pagamento.html'));
-});
-
-// -------- Rotas de fallback --------
-app.get('/forma_pagamento', (_req, res) => {
-  console.log('🔄 Redirecionando de forma_pagamento para formas-pagamento');
-  res.redirect('/formas-pagamento');
-});
-
-app.get('/forma_pagamento.html', (_req, res) => {
-  console.log('🔄 Redirecionando de forma_pagamento.html');
-  res.redirect('/formas-pagamento');
 });
 
 app.get('/pagamento', (_req, res) => {
@@ -132,15 +148,15 @@ app.get('/pedidos', (_req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pedidos/pedidos.html'));
 });
 
-// -------- API de usuários --------
-app.use('/api/usuarios', usuarioController);
+// -------- API de usuários (protegida) --------
+app.use('/api/usuarios', requireAuth, require('./controllers/usuarioController'));
 
 // -------- Rotas modulares dos CRUDs --------
 app.use('/produto', require('./routes/produtoRoutes'));
 app.use('/categoria', require('./routes/categoriaRoutes'));
-app.use('/pedido', require('./routes/pedidoRoutes'));
-app.use('/endereco', require('./routes/enderecoRoutes'));
-app.use('/api/formas_pagamento', require('./routes/forma_pagamentoRoutes'));
+app.use('/pedido', requireAuth, require('./routes/pedidoRoutes'));
+app.use('/endereco', requireAuth, require('./routes/enderecoRoutes'));
+app.use('/api/formas_pagamento', requireAuth, require('./routes/forma_pagamentoRoutes'));
 
 // -------- Rota principal (loja) --------
 app.use(express.static(path.join(__dirname, '../frontend/loja')));
@@ -164,6 +180,22 @@ app.get('/donuts', async (_req, res) => {
   }
 });
 
+// -------- Categorias --------
+app.get('/categoria', async (_req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id_categoria, nome_categoria, descricao_categoria
+       FROM categorias
+       WHERE ativo = true
+       ORDER BY nome_categoria`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao carregar categorias:', err);
+    res.status(500).json({ error: 'Erro ao carregar categorias' });
+  }
+});
+
 // -------- Health check --------
 app.get('/health', async (_req, res) => {
   try {
@@ -177,7 +209,7 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-// -------- Erros --------
+// -------- Middleware de Erros --------
 app.use((err, _req, res, _next) => {
   console.error('❌ Erro não tratado:', err.message);
   res.status(500).json({ 

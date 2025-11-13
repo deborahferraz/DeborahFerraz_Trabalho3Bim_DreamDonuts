@@ -51,8 +51,14 @@ exports.registro = async (req, res) => {
        cidade, estado, cep]
     );
 
+    // Criar sessão
     req.session.user = user;
-    res.json({ message: 'Usuário registrado com sucesso.', user });
+    
+    res.json({ 
+      message: 'Usuário registrado com sucesso.', 
+      user,
+      logged: true 
+    });
   } catch (err) {
     console.error('Erro no registro:', err);
     
@@ -68,23 +74,36 @@ exports.registro = async (req, res) => {
 // -------- LOGIN --------
 exports.login = async (req, res) => {
   const { email_usuario, senha_usuario } = req.body;
+  
   if (!email_usuario || !senha_usuario)
     return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
 
   try {
     const { rows } = await db.query(
-      'SELECT id_usuario, nome_usuario, email_usuario, senha_usuario, papel FROM usuarios WHERE email_usuario=$1',
+      'SELECT id_usuario, nome_usuario, email_usuario, senha_usuario, papel FROM usuarios WHERE email_usuario=$1 AND ativo=true',
       [email_usuario]
     );
-    if (!rows.length) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+    
+    if (!rows.length) 
+      return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
     const user = rows[0];
     const ok = await bcrypt.compare(senha_usuario, user.senha_usuario);
-    if (!ok) return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+    
+    if (!ok) 
+      return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
 
-    delete user.senha_usuario;
-    req.session.user = user;
-    res.json({ message: 'Login efetuado com sucesso.', user });
+    // Remover senha do objeto user
+    const { senha_usuario: _, ...userWithoutPassword } = user;
+    
+    // Criar sessão
+    req.session.user = userWithoutPassword;
+    
+    res.json({ 
+      message: 'Login efetuado com sucesso.', 
+      user: userWithoutPassword,
+      logged: true 
+    });
   } catch (err) {
     console.error('Erro no login:', err);
     res.status(500).json({ error: 'Erro ao efetuar login.' });
@@ -93,16 +112,27 @@ exports.login = async (req, res) => {
 
 // -------- LOGOUT --------
 exports.logout = (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie('connect.sid');
-    res.json({ ok: true });
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Erro ao destruir sessão:', err);
+      return res.status(500).json({ error: 'Erro ao fazer logout' });
+    }
+    
+    res.clearCookie('donutshop.sid');
+    res.json({ 
+      message: 'Logout realizado com sucesso.',
+      logged: false 
+    });
   });
 };
 
-// -------- VERIFICAR --------
+// -------- VERIFICAR SESSÃO --------
 exports.verificarLogin = (req, res) => {
-  if (req.session?.user) {
-    return res.json({ logged: true, ...req.session.user });
+  if (req.session.user) {
+    return res.json({ 
+      logged: true, 
+      ...req.session.user 
+    });
   }
-  res.status(401).json({ logged: false });
+  res.json({ logged: false });
 };

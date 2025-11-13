@@ -8,13 +8,13 @@ export function mostrarMensagem(el, texto, tipo = 'erro') {
   setTimeout(() => (el.style.display = 'none'), 4000);
 }
 
-// Verifica sessão e retorna { logged, nome }
+// Verifica sessão
 export async function verificarSessao() {
   try {
-    const r = await fetch(`${API_BASE_URL}/auth/user`, {
+    const response = await fetch(`${API_BASE_URL}/auth/verificar`, {
       credentials: 'include'
     });
-    return await r.json();
+    return await response.json();
   } catch (err) {
     console.error('Erro ao verificar sessão:', err);
     return { logged: false };
@@ -23,30 +23,49 @@ export async function verificarSessao() {
 
 // Faz login
 export async function login(email, senha) {
-  const r = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify({ email_usuario: email, senha_usuario: senha })
-  });
-  return await r.json();
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ 
+        email_usuario: email, 
+        senha_usuario: senha 
+      })
+    });
+    return await response.json();
+  } catch (err) {
+    console.error('Erro no login:', err);
+    return { error: 'Erro de conexão com o servidor' };
+  }
 }
 
 // Faz registro
 export async function registrar(dados) {
-  const r = await fetch(`${API_BASE_URL}/auth/registro`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(dados)
-  });
-  return await r.json();
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/registro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(dados)
+    });
+    return await response.json();
+  } catch (err) {
+    console.error('Erro no registro:', err);
+    return { error: 'Erro de conexão com o servidor' };
+  }
 }
 
 // Logout
 export async function logout() {
-  await fetch(`${API_BASE_URL}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include'
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    return await response.json();
+  } catch (err) {
+    console.error('Erro no logout:', err);
+    return { error: 'Erro de conexão' };
+  }
 }

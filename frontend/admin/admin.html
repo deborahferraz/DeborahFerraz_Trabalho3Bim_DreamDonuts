@@ -39,11 +39,10 @@
                 </div>
                 
                 <div class="crud-card" onclick="abrirCrud('produto')">
-    <div class="crud-icon">🍩</div>
-    <h3>Produtos</h3>
-    <p>Gerenciar donuts e produtos</p>
-</div>
-
+                    <div class="crud-icon">🍩</div>
+                    <h3>Produtos</h3>
+                    <p>Gerenciar donuts e produtos</p>
+                </div>
                 
                 <div class="crud-card" onclick="abrirCrud('usuarios')">
                     <div class="crud-icon">👥</div>
@@ -68,69 +67,69 @@
                     <h3>Formas de Pagamento</h3>
                     <p>Gerenciar formas de pagamento</p>
                 </div>
+
+                <!-- NOVO: Relatórios -->
+                <div class="crud-card" onclick="abrirRelatorios()">
+                    <div class="crud-icon">📊</div>
+                    <h3>Relatórios</h3>
+                    <p>Relatórios gerenciais e vendas</p>
+                    <small>NOVO</small>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- Modal para CRUDs -->
-    <div id="crudModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">CRUD</h3>
-                <button class="close-modal" onclick="fecharModal()">✕</button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="crud-actions">
-                    <button id="btnNovo" class="btn-primary" onclick="novoItem()">+ Novo</button>
-                    <button id="btnAtualizar" class="btn-secondary" onclick="carregarItens()">🔄 Atualizar</button>
-                </div>
-                
-                <!-- Tabela de dados -->
-                <div class="table-container">
-                    <table id="dataTable" class="data-table">
-                        <thead id="tableHead"></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Formulário -->
-    <div id="formModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="formTitle">Formulário</h3>
-                <button class="close-modal" onclick="fecharFormModal()">✕</button>
-            </div>
-            
-            <div class="modal-body">
-                <form id="itemForm" class="item-form">
-                    <div id="formFields"></div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">Salvar</button>
-                        <button type="button" class="btn-secondary" onclick="fecharFormModal()">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlays -->
-    <div id="modalOverlay" class="modal-overlay" onclick="fecharModal()"></div>
-    <div id="formOverlay" class="modal-overlay" onclick="fecharFormModal()"></div>
-
     <script>
-  function abrirCrud(pagina) {
-  if (pagina === "produto") {
-    window.location.href = `../produto/produto.html`; // ✅ sobe uma pasta
-  }
-}
-</script>
+        const API_BASE_URL = "http://localhost:3001";
+        let usuarioLogado = null;
 
-    <script src="admin.js"></script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            await verificarLogin();
+        });
 
+        // -------- VERIFICAR LOGIN --------
+        async function verificarLogin() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/verificar`, {
+                    credentials: "include",
+                });
+                const data = await response.json();
+
+                if (data.logged) {
+                    usuarioLogado = data;
+                    document.getElementById("nomeUsuario").textContent = `Bem-vindo, ${data.nome_usuario}!`;
+                    
+                    // Verificar se é admin
+                    if (data.papel !== 'admin') {
+                        alert('Acesso negado. Apenas administradores podem acessar o painel.');
+                        window.location.href = "../loja/index.html";
+                    }
+                } else {
+                    usuarioLogado = null;
+                    document.getElementById("nomeUsuario").textContent = "Não autenticado";
+                    alert('Você precisa estar logado para acessar o painel.');
+                    window.location.href = "../auth/login.html";
+                }
+            } catch (error) {
+                console.error("Erro ao verificar login:", error);
+            }
+        }
+
+        // -------- ABRIR CRUD --------
+        function abrirCrud(pagina) {
+            window.location.href = `../${pagina}/${pagina}.html`; 
+        }
+
+        // -------- ABRIR RELATÓRIOS --------
+        function abrirRelatorios() {
+            window.location.href = `../relatorios/relatorios.html`;
+        }
+
+        // -------- LOGOUT --------
+        document.getElementById("btnLogout").addEventListener("click", async () => {
+            await fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include" });
+            window.location.href = "../loja/index.html";
+        });
+    </script>
 </body>
 </html>
