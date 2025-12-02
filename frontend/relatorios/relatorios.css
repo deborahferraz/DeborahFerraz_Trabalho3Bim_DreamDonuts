@@ -567,3 +567,36 @@ button:active {
         font-size: 14px;
     }
 }
+/* Adicione ao final do arquivo relatorios.css */
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* Estilos para os checkboxes do relatório */
+.resumo input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+    vertical-align: middle;
+}
+
+.resumo p {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.resumo strong {
+    margin-right: 5px;
+}
