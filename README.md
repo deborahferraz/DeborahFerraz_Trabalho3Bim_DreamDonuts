@@ -16,12 +16,8 @@ No CRUD usuários, o maior desafio foi com as senhas, que ao serem salvas no ban
 O CRUD pedidos e endereços também foram complicados. Os endereços no meu sistema podem ser cadastrados de duas formas: ao criar conta ou na realização do pagamento. Inicialmente, ao enviar os endereços para os pedidos, ocorriam erros e os campos retornavam vazios. Precisei reconfigurar o banco de dados e ajustar o código até resolver completamente. 
 
 
-<<<<<<< HEAD
- A parte do pagamento da loja também foi bem complicada, principalmente por possibilitar o usuário de adicionar um novo endereço ou resgatar automaticamente o endereço cadastrado no criar conta. Havia erros no envio ao banco de dados e assim o usuário não realizava a compra corretamente. 
+A parte do pagamento da loja também foi bem complicada, principalmente por possibilitar o usuário de adicionar um novo endereço ou resgatar automaticamente o endereço cadastrado no criar conta. Havia erros no envio ao banco de dados e assim o usuário não realizava a compra corretamente. 
  A forma de pagamento PIX também deu erro, o código não compactava com o meu PIX. Precisei usar o código antigo para assim o PIX funcionar corretamente. 
-=======
-A parte do pagamento da loja também foi bem complicada, principalmente por possibilitar o usuário de adicionar um novo endereço ou resgatar automaticamente o endereço cadastrado no criar conta. Havia erros no envio ao banco de dados e assim o usuário não realizava a compra corretamente. A forma de pagamento PIX também deu erro, o código não compactava com o meu PIX. Precisei usar o código antigo para assim o PIX funcionar corretamente. 
->>>>>>> 931e8530fb901c5f7ee8709c1a7fff6714200cea
 
 
 Os relatórios foram tecnicamente mais simples, mas enfrentei um problema onde datas específicas nos "produtos mais vendidos" retornavam informações de outro período.
