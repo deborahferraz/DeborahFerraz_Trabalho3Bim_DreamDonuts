@@ -36,25 +36,26 @@ async function testarConexaoPedidos() {
     }
 }
 
-// Configurar datas padrão para o relatório de produtos
+// Configurar datas padrão para os relatórios
 function configurarDatasPadrao() {
     const hoje = new Date();
-    const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const mesSelect = document.getElementById('mes-vendas');
+    const anoSelect = document.getElementById('ano-vendas');
+    const mesProdutosSelect = document.getElementById('mes-produtos');
+    const anoProdutosSelect = document.getElementById('ano-produtos');
     
-    const dataInicio = document.getElementById('data-inicio');
-    const dataFim = document.getElementById('data-fim');
+    if (mesSelect && anoSelect) {
+        mesSelect.value = hoje.getMonth() + 1; // Mês atual (1-12)
+        anoSelect.value = hoje.getFullYear();
+    }
     
-    if (dataInicio && dataFim) {
-        dataInicio.value = formatarDataParaInput(primeiroDiaMes);
-        dataFim.value = formatarDataParaInput(hoje);
+    if (mesProdutosSelect && anoProdutosSelect) {
+        mesProdutosSelect.value = hoje.getMonth() + 1;
+        anoProdutosSelect.value = hoje.getFullYear();
     }
 }
 
-function formatarDataParaInput(data) {
-    return data.toISOString().split('T')[0];
-}
-
-// Função para descobrir o endpoint correto automaticamente - CORRIGIDA
+// Função para descobrir o endpoint correto automaticamente
 async function descobrirEndpoint() {
     console.log('🔍 Descobrindo endpoints da API...');
     
@@ -99,7 +100,7 @@ async function descobrirEndpoint() {
     return null;
 }
 
-// Função para buscar pedidos da API - CORRIGIDA
+// Função para buscar pedidos da API
 async function buscarPedidos() {
     try {
         console.log('📦 Buscando pedidos da API...');
@@ -176,53 +177,85 @@ async function buscarPedidos() {
     }
 }
 
-// NOVA FUNÇÃO: Buscar pedidos COMPLETOS com itens
-async function buscarPedidosCompletos() {
+// NOVA FUNÇÃO: Buscar detalhes de um pedido específico
+async function buscarDetalhesPedido(pedidoId) {
     try {
-        console.log('📦 Buscando pedidos completos com itens...');
+        console.log(`🔍 Buscando detalhes do pedido #${pedidoId}...`);
         
-        const endpoint = localStorage.getItem('api_endpoint_pedidos') || '/pedido';
-        const pedidos = await buscarPedidos(); // Busca básica
+        const response = await fetch(`${API_BASE_URL}/pedido/${pedidoId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'include'
+        });
         
-        // Agora buscar detalhes de CADA pedido individualmente
-        const pedidosComDetalhes = [];
+        if (response.ok) {
+            const pedidoDetalhado = await response.json();
+            console.log(`✅ Detalhes do pedido #${pedidoId} recebidos`);
+            return pedidoDetalhado;
+        } else {
+            console.log(`❌ Não foi possível buscar detalhes do pedido #${pedidoId}`);
+            return null;
+        }
         
-        for (const pedido of pedidos) {
+    } catch (error) {
+        console.error(`Erro ao buscar detalhes do pedido #${pedidoId}:`, error);
+        return null;
+    }
+}
+
+// NOVA FUNÇÃO: Buscar todos os pedidos com itens detalhados
+async function buscarPedidosComItens() {
+    try {
+        console.log('📦 Buscando pedidos com itens detalhados...');
+        
+        // Primeiro, buscar a lista de pedidos
+        const pedidos = await buscarPedidos();
+        
+        if (!pedidos || pedidos.length === 0) {
+            return [];
+        }
+        
+        // Array para armazenar pedidos com itens
+        const pedidosComItens = [];
+        
+        // Para cada pedido, buscar os detalhes (mas limitar a 10 para performance)
+        const pedidosParaProcessar = pedidos.slice(0, 50); // Limitar para performance
+        
+        console.log(`🔍 Processando ${pedidosParaProcessar.length} pedidos para obter itens...`);
+        
+        for (const pedido of pedidosParaProcessar) {
             try {
                 const pedidoId = pedido.id_pedido || pedido.id;
-                console.log(`🔍 Buscando detalhes do pedido #${pedidoId}...`);
+                const detalhesPedido = await buscarDetalhesPedido(pedidoId);
                 
-                const response = await fetch(`${API_BASE_URL}/pedido/${pedidoId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const pedidoDetalhado = await response.json();
-                    pedidosComDetalhes.push(pedidoDetalhado);
-                    console.log(`✅ Pedido #${pedidoId} - ${pedidoDetalhado.itens?.length || 0} itens`);
+                if (detalhesPedido && detalhesPedido.itens && Array.isArray(detalhesPedido.itens)) {
+                    // Adicionar os itens ao pedido original
+                    pedido.itens = detalhesPedido.itens;
+                    pedidosComItens.push(pedido);
+                    
+                    console.log(`✅ Pedido #${pedidoId}: ${detalhesPedido.itens.length} itens`);
                 } else {
-                    console.log(`❌ Não foi possível buscar detalhes do pedido #${pedidoId}`);
-                    pedidosComDetalhes.push(pedido); // Usa o pedido básico
+                    // Se não tiver itens, adicionar o pedido sem itens
+                    pedidosComItens.push(pedido);
+                    console.log(`⚠️ Pedido #${pedidoId}: sem itens detalhados`);
                 }
                 
                 // Pequena pausa para não sobrecarregar o servidor
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 50));
                 
             } catch (error) {
-                console.error(`Erro no pedido #${pedido.id_pedido}:`, error);
-                pedidosComDetalhes.push(pedido); // Usa o pedido básico
+                console.error(`Erro ao processar pedido #${pedido.id_pedido}:`, error);
+                pedidosComItens.push(pedido); // Adicionar mesmo sem itens
             }
         }
         
-        console.log(`✅ ${pedidosComDetalhes.length} pedidos com detalhes processados`);
-        return pedidosComDetalhes;
+        console.log(`✅ ${pedidosComItens.length} pedidos processados com itens`);
+        return pedidosComItens;
         
     } catch (error) {
-        console.error('Erro ao buscar pedidos completos:', error);
+        console.error('❌ Erro ao buscar pedidos com itens:', error);
         return await buscarPedidos(); // Fallback para busca básica
     }
 }
@@ -270,7 +303,7 @@ async function buscarProdutos() {
     }
 }
 
-// Função principal para gerar relatório de vendas - CORRIGIDA
+// Função principal para gerar relatório de vendas
 async function gerarRelatorioVendas() {
     try {
         console.log('📊 Iniciando geração do relatório de vendas...');
@@ -306,7 +339,7 @@ async function gerarRelatorioVendas() {
             return;
         }
 
-        // Filtrar pedidos pelo mês e ano - CORRIGIDO para estrutura real dos pedidos
+        // Filtrar pedidos pelo mês e ano
         const pedidosFiltrados = pedidos.filter(pedido => {
             try {
                 // Usar data_pedido que é o campo real na sua base de dados
@@ -338,7 +371,7 @@ async function gerarRelatorioVendas() {
     }
 }
 
-// Função para exibir o relatório de vendas - CORRIGIDA para estrutura real
+// Função para exibir o relatório de vendas
 function exibirRelatorioVendas(pedidos, mes, ano) {
     const container = document.getElementById('relatorio-vendas-container');
     
@@ -356,7 +389,7 @@ function exibirRelatorioVendas(pedidos, mes, ano) {
         return;
     }
 
-    // Calcular totais - CORRIGIDO para campos reais
+    // Calcular totais
     const totalVendas = pedidos.reduce((total, pedido) => {
         const valor = parseFloat(
             pedido.valor_total || pedido.total || pedido.valorTotal || pedido.VALOR_TOTAL || 
@@ -368,7 +401,7 @@ function exibirRelatorioVendas(pedidos, mes, ano) {
     const quantidadePedidos = pedidos.length;
     const ticketMedio = quantidadePedidos > 0 ? totalVendas / quantidadePedidos : 0;
 
-    // Gerar HTML do relatório - CORRIGIDO para campos reais
+    // Gerar HTML do relatório
     const htmlRelatorio = `
         <div class="relatorio-vendas">
             <div class="resumo">
@@ -425,150 +458,77 @@ function exibirRelatorioVendas(pedidos, mes, ano) {
     adicionarEstilosStatus();
 }
 
-// NOVA FUNÇÃO: Gerar relatório de produtos MELHORADO
+// Função corrigida para gerar relatório de produtos - AGORA COM ITENS
 async function gerarRelatorioProdutos() {
     try {
-        const dataInicio = document.getElementById('data-inicio').value;
-        const dataFim = document.getElementById('data-fim').value;
+        const mesSelect = document.getElementById('mes-produtos');
+        const anoSelect = document.getElementById('ano-produtos');
         
-        if (!dataInicio || !dataFim) {
-            mostrarErro('relatorio-produtos-container', 'Por favor, selecione a data início e data fim.');
+        if (!mesSelect || !anoSelect) {
+            mostrarErro('relatorio-produtos-container', 'Erro: Elementos do formulário não encontrados.');
+            return;
+        }
+
+        const mes = mesSelect.value;
+        const ano = anoSelect.value;
+        
+        console.log(`📊 Gerando relatório de produtos: Mês=${mes}, Ano=${ano}`);
+        
+        if (!mes || !ano) {
+            mostrarErro('relatorio-produtos-container', 'Por favor, selecione o mês e o ano.');
             return;
         }
 
         // Mostrar loading
-        mostrarLoading('relatorio-produtos-container', 'Buscando dados detalhados dos pedidos...');
+        mostrarLoading('relatorio-produtos-container', 'Buscando dados detalhados dos produtos...');
 
-        // Buscar pedidos COMPLETOS com itens
-        const pedidos = await buscarPedidosCompletos();
+        // Buscar pedidos COM ITENS da API
+        const pedidos = await buscarPedidosComItens();
         
-        console.log('🎯 DATAS SELECIONADAS:', dataInicio, 'até', dataFim);
-        console.log('📦 Total de pedidos encontrados na API:', pedidos.length);
+        console.log('Total de pedidos encontrados:', pedidos.length);
         
         if (!pedidos || pedidos.length === 0) {
             mostrarErro('relatorio-produtos-container', 'Nenhum pedido encontrado no sistema.');
             return;
         }
 
-        // DEBUG ESPECÍFICO PARA DATAS DE 2025
-        console.log('🔍 INVESTIGANDO DATAS DOS PEDIDOS (2025):');
-        pedidos.forEach((pedido, index) => {
-            console.log(`📅 Pedido ${pedido.id_pedido || pedido.id}:`, {
-                // Mostrar TODOS os campos do pedido que podem conter data
-                todosOsCampos: Object.keys(pedido),
-                // Mostrar valores de campos com "data" no nome
-                camposData: Object.keys(pedido)
-                    .filter(key => key.toLowerCase().includes('data') || 
-                                  key.toLowerCase().includes('date') ||
-                                  key.toLowerCase().includes('time'))
-                    .reduce((obj, key) => {
-                        obj[key] = pedido[key];
-                        return obj;
-                    }, {}),
-                // Mostrar estrutura dos itens se existirem
-                temItens: pedido.itens ? pedido.itens.length : 0,
-                primeiroItem: pedido.itens ? pedido.itens[0] : null
-            });
-        });
-
-        const dataInicioObj = new Date(dataInicio);
-        const dataFimObj = new Date(dataFim);
-        dataFimObj.setHours(23, 59, 59, 999);
-
-        console.log('⏰ Período de filtro:', dataInicioObj.toISOString(), 'até', dataFimObj.toISOString());
-
-        // Filtrar pedidos pelo período - VERSÃO SUPER FLEXÍVEL
+        // Filtrar pedidos pelo mês e ano
         const pedidosFiltrados = pedidos.filter(pedido => {
             try {
-                // TENTAR TODOS OS CAMPOS POSSÍVEIS DE DATA
-                let dataPedido = null;
-                let campoUsado = '';
+                // Usar data_pedido que é o campo real na sua base de dados
+                const dataPedido = new Date(pedido.data_pedido || pedido.data || pedido.DATA || pedido.createdAt || pedido.dataPedido || pedido.date);
                 
-                // Lista de campos possíveis para data
-                const camposData = [
-                    'data_pedido', 'data', 'createdAt', 'data_criacao', 
-                    'dataPedido', 'date', 'DATA', 'timestamp', 'data_emissao',
-                    'emissao', 'created_at', 'updated_at'
-                ];
-                
-                for (const campo of camposData) {
-                    if (pedido[campo]) {
-                        dataPedido = new Date(pedido[campo]);
-                        if (!isNaN(dataPedido.getTime())) {
-                            campoUsado = campo;
-                            break;
-                        }
-                    }
-                }
-                
-                // Se não encontrou, tentar procurar em subcampos
-                if (!dataPedido || isNaN(dataPedido.getTime())) {
-                    // Verificar se há um objeto com data
-                    for (const key in pedido) {
-                        if (typeof pedido[key] === 'object' && pedido[key] !== null) {
-                            for (const subcampo of camposData) {
-                                if (pedido[key][subcampo]) {
-                                    dataPedido = new Date(pedido[key][subcampo]);
-                                    if (!isNaN(dataPedido.getTime())) {
-                                        campoUsado = `${key}.${subcampo}`;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                if (!dataPedido || isNaN(dataPedido.getTime())) {
-                    console.warn('❌ Não foi possível encontrar data válida no pedido:', pedido.id_pedido);
+                if (isNaN(dataPedido.getTime())) {
+                    console.warn('⚠️ Data inválida no pedido:', pedido.id_pedido || pedido.id, pedido.data_pedido);
                     return false;
                 }
                 
-                const estaNoPeriodo = dataPedido >= dataInicioObj && dataPedido <= dataFimObj;
+                const mesPedido = dataPedido.getMonth() + 1;
+                const anoPedido = dataPedido.getFullYear();
                 
-                console.log(`📋 Pedido ${pedido.id_pedido}:`, {
-                    campoUsado: campoUsado,
-                    valorOriginal: pedido[campoUsado.split('.')[0]],
-                    dataConvertida: dataPedido.toISOString(),
-                    dataLegivel: dataPedido.toLocaleDateString('pt-BR'),
-                    ano: dataPedido.getFullYear(),
-                    estaNoPeriodo: estaNoPeriodo
-                });
-                
-                return estaNoPeriodo;
+                return mesPedido === parseInt(mes) && anoPedido === parseInt(ano);
             } catch (error) {
-                console.error('❌ Erro ao processar data do pedido:', pedido.id_pedido, error);
+                console.error('Erro ao processar data do pedido:', pedido.id_pedido || pedido.id, error);
                 return false;
             }
         });
-
-        console.log('✅ Pedidos filtrados para o período:', pedidosFiltrados.length);
-
-        // Se nenhum pedido foi filtrado, mostrar TODOS os pedidos (forçando 2025)
-        if (pedidosFiltrados.length === 0) {
-            console.log('⚠️ Forçando exibição de TODOS os pedidos (modo debug 2025)');
-            
-            // Buscar produtos para obter nomes completos
-            const produtos = await buscarProdutos();
-            
-            // Exibir relatório com todos os pedidos
-            exibirRelatorioProdutosMelhorado(pedidos, produtos, dataInicio, dataFim);
-            return;
-        }
-
-        // Buscar produtos para obter nomes completos
-        const produtos = await buscarProdutos();
         
-        exibirRelatorioProdutosMelhorado(pedidosFiltrados, produtos, dataInicio, dataFim);
+        console.log('Pedidos filtrados para o período:', pedidosFiltrados.length);
+        
+        // Buscar lista de produtos para obter nomes completos
+        const produtosCatalogo = await buscarProdutos();
+        
+        // Gerar e exibir o relatório
+        exibirRelatorioProdutosCorrigido(pedidosFiltrados, produtosCatalogo, mes, ano);
         
     } catch (error) {
         console.error('❌ Erro ao gerar relatório de produtos:', error);
-        mostrarErro('relatorio-produtos-container', `Erro ao gerar relatório: ${error.message}`);
+        mostrarErro('relatorio-produtos-container', `Erro: ${error.message}`);
     }
 }
 
-// NOVA FUNÇÃO: Exibir relatório de produtos MELHORADO
-function exibirRelatorioProdutosMelhorado(pedidos, produtos, dataInicio, dataFim) {
+// Função corrigida para exibir o relatório de produtos - AGORA COM QUANTIDADES CORRETAS
+function exibirRelatorioProdutosCorrigido(pedidos, produtosCatalogo, mes, ano) {
     const container = document.getElementById('relatorio-produtos-container');
     
     if (!container) return;
@@ -576,97 +536,148 @@ function exibirRelatorioProdutosMelhorado(pedidos, produtos, dataInicio, dataFim
     if (pedidos.length === 0) {
         container.innerHTML = `
             <div class="mensagem-aguardando">
-                <p>Nenhum pedido encontrado para o período de ${formatarDataExibicao(dataInicio)} a ${formatarDataExibicao(dataFim)}</p>
+                <p>Nenhum produto vendido encontrado para ${getNomeMes(mes)}/${ano}</p>
+                <p style="font-size: 12px; margin-top: 10px;">
+                    Não houve vendas de produtos no período selecionado.
+                </p>
             </div>
         `;
         return;
     }
 
-    // Agrupar produtos vendidos - VERSÃO MELHORADA
+    // Agrupar produtos vendidos - AGORA USANDO OS ITENS DOS PEDIDOS
     const produtosVendidos = {};
-    let pedidosSemItens = 0;
-    let totalItens = 0;
+    let totalItensVendidos = 0;
+    let pedidosComItensDetalhados = 0;
+    let pedidosSemItensDetalhados = 0;
     
+    // Processar os pedidos para agrupar produtos
     pedidos.forEach(pedido => {
         // Verificar se o pedido tem itens detalhados
         if (pedido.itens && Array.isArray(pedido.itens) && pedido.itens.length > 0) {
+            pedidosComItensDetalhados++;
+            
             pedido.itens.forEach(item => {
                 const produtoId = item.id_produto || item.produto_id;
-                const nomeProduto = item.nome_produto || `Produto ${produtoId}`;
                 const quantidade = Number(item.quantidade) || 1;
-                const preco = Number(item.preco_unitario) || Number(item.preco) || 0;
+                const precoUnitario = Number(item.preco_unitario) || Number(item.preco) || 0;
+                
+                // Tentar encontrar o nome do produto no catálogo
+                let nomeProduto = item.nome_produto;
+                
+                if (!nomeProduto && produtoId && produtosCatalogo.length > 0) {
+                    const produtoCatalogo = produtosCatalogo.find(p => 
+                        p.id_produto == produtoId || p.id == produtoId
+                    );
+                    if (produtoCatalogo) {
+                        nomeProduto = produtoCatalogo.nome_produto || produtoCatalogo.nome;
+                    }
+                }
+                
+                if (!nomeProduto) {
+                    nomeProduto = `Produto #${produtoId}`;
+                }
                 
                 if (!produtosVendidos[nomeProduto]) {
                     produtosVendidos[nomeProduto] = {
+                        id: produtoId,
                         quantidade: 0,
                         total: 0,
-                        produtoId: produtoId
+                        pedidos: new Set()
                     };
                 }
+                
                 produtosVendidos[nomeProduto].quantidade += quantidade;
-                produtosVendidos[nomeProduto].total += quantidade * preco;
-                totalItens += quantidade;
+                produtosVendidos[nomeProduto].total += quantidade * precoUnitario;
+                produtosVendidos[nomeProduto].pedidos.add(pedido.id_pedido || pedido.id);
+                totalItensVendidos += quantidade;
             });
         } else {
-            pedidosSemItens++;
-            // Fallback melhorado: usar nome do produto se disponível
-            const nomeProduto = pedido.nome_produto || `Pedido #${pedido.id_pedido}`;
-            const total = parseFloat(pedido.valor_total || 0);
+            pedidosSemItensDetalhados++;
+            // Fallback: se não tiver itens detalhados, usar o pedido como um item
+            const nomeProduto = `Pedido #${pedido.id_pedido || pedido.id}`;
+            const total = parseFloat(pedido.valor_total || pedido.total || 0);
             
             if (!produtosVendidos[nomeProduto]) {
                 produtosVendidos[nomeProduto] = {
+                    id: pedido.id_pedido || pedido.id,
                     quantidade: 1,
                     total: total,
-                    produtoId: null
+                    pedidos: new Set([pedido.id_pedido || pedido.id])
                 };
             } else {
                 produtosVendidos[nomeProduto].quantidade += 1;
                 produtosVendidos[nomeProduto].total += total;
+                produtosVendidos[nomeProduto].pedidos.add(pedido.id_pedido || pedido.id);
             }
-            totalItens += 1;
+            totalItensVendidos += 1;
         }
     });
 
-    // Converter para array e ordenar por quantidade
+    // Converter para array e ordenar por quantidade (mais vendido primeiro)
     const produtosOrdenados = Object.entries(produtosVendidos)
         .map(([nome, dados]) => ({
             nome,
+            id: dados.id,
             quantidade: dados.quantidade,
             total: dados.total,
-            produtoId: dados.produtoId
+            media: dados.quantidade > 0 ? dados.total / dados.quantidade : 0,
+            pedidosCount: dados.pedidos.size
         }))
         .sort((a, b) => b.quantidade - a.quantidade);
 
+    const totalVendasProdutos = produtosOrdenados.reduce((sum, prod) => sum + prod.total, 0);
+    const quantidadeProdutosDiferentes = produtosOrdenados.length;
+
+    // Gerar HTML do relatório
     const htmlRelatorio = `
         <div class="relatorio-produtos">
             <div class="resumo">
                 <h3>📊 Produtos Mais Vendidos</h3>
-                <p><strong>📅 Período:</strong> ${formatarDataExibicao(dataInicio)} a ${formatarDataExibicao(dataFim)}</p>
-                <p><strong>📦 Total de Pedidos Analisados:</strong> ${pedidos.length}</p>
-                <p><strong>🏷️ Total de Produtos Diferentes:</strong> ${produtosOrdenados.length}</p>
-                <p><strong>🛒 Total de Itens Vendidos:</strong> ${totalItens}</p>
-                ${pedidosSemItens > 0 ? `<p class="aviso"><strong>⚠️ Atenção:</strong> ${pedidosSemItens} pedidos não possuem detalhes dos itens</p>` : ''}
+                <p><strong>📅 Período:</strong> ${getNomeMes(mes)}/${ano}</p>
+                <p><strong>💰 Total Arrecadado:</strong> R$ ${totalVendasProdutos.toFixed(2)}</p>
+                <p><strong>📦 Total de Itens Vendidos:</strong> ${totalItensVendidos} unidades</p>
+                <p><strong>🏷️ Produtos Diferentes:</strong> ${quantidadeProdutosDiferentes}</p>
+                <p><strong>📈 Pedidos Analisados:</strong> ${pedidos.length}</p>
+                ${pedidosSemItensDetalhados > 0 ? 
+                    `<p><strong>⚠️ Observação:</strong> ${pedidosSemItensDetalhados} pedidos não possuem itens detalhados</p>` 
+                    : ''}
             </div>
             
             <table class="tabela-relatorio">
                 <thead>
                     <tr>
-                        <th>Posição</th>
+                        <th>Ranking</th>
                         <th>Produto</th>
                         <th>Quantidade Vendida</th>
                         <th>Total Arrecadado (R$)</th>
+                        <th>Preço Médio (R$)</th>
+                        <th>Pedidos</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${produtosOrdenados.map((produto, index) => `
                         <tr>
-                            <td><strong>${index + 1}º</strong></td>
+                            <td style="text-align: center;">
+                                <strong>${index + 1}º</strong>
+                                ${index < 3 ? '<br><small style="color: gold;">🏆</small>' : ''}
+                            </td>
                             <td>
                                 <div style="font-weight: bold;">${produto.nome}</div>
-                                ${produto.produtoId ? `<div style="font-size: 12px; color: #666;">ID: ${produto.produtoId}</div>` : '<div style="font-size: 12px; color: #ff6b6b;">⚠️ Pedido completo</div>'}
+                                ${produto.id ? `<div style="font-size: 12px; color: #666;">ID: ${produto.id}</div>` : ''}
                             </td>
-                            <td style="text-align: center;"><strong>${produto.quantidade}</strong> un.</td>
-                            <td style="text-align: right;"><strong>R$ ${produto.total.toFixed(2)}</strong></td>
+                            <td style="text-align: center;">
+                                <strong>${produto.quantidade}</strong> un.
+                            </td>
+                            <td style="text-align: right;">
+                                <strong>R$ ${produto.total.toFixed(2)}</strong>
+                            </td>
+                            <td style="text-align: right;">
+                                R$ ${produto.media.toFixed(2)}
+                            </td>
+                            <td style="text-align: center;">
+                                ${produto.pedidosCount}
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -674,6 +685,7 @@ function exibirRelatorioProdutosMelhorado(pedidos, produtos, dataInicio, dataFim
             
             <div class="acoes">
                 <button class="btn-exportar" onclick="imprimirRelatorioEspecifico('produtos')">🖨️ Imprimir Este Relatório</button>
+                
             </div>
         </div>
     `;
@@ -684,23 +696,29 @@ function exibirRelatorioProdutosMelhorado(pedidos, produtos, dataInicio, dataFim
 // FUNÇÃO PARA TESTAR DETALHES DOS PEDIDOS
 async function testarDetalhesPedidos() {
     try {
+        mostrarLoading('relatorio-produtos-container', 'Testando detalhes dos pedidos...');
+        
         const pedidos = await buscarPedidos();
         console.log('🧪 Testando detalhes dos pedidos...');
         
         let pedidosComItens = 0;
         let pedidosSemItens = 0;
+        let itensTotais = 0;
         
-        for (let i = 0; i < Math.min(5, pedidos.length); i++) {
+        // Testar apenas 3 pedidos para não sobrecarregar
+        for (let i = 0; i < Math.min(3, pedidos.length); i++) {
             const pedido = pedidos[i];
             const pedidoId = pedido.id_pedido || pedido.id;
             
-            const response = await fetch(`${API_BASE_URL}/pedido/${pedidoId}`);
-            if (response.ok) {
-                const detalhes = await response.json();
+            console.log(`🔍 Testando pedido #${pedidoId}...`);
+            
+            const detalhes = await buscarDetalhesPedido(pedidoId);
+            if (detalhes) {
                 const temItens = detalhes.itens && Array.isArray(detalhes.itens) && detalhes.itens.length > 0;
                 
                 if (temItens) {
                     pedidosComItens++;
+                    itensTotais += detalhes.itens.length;
                     console.log(`✅ Pedido #${pedidoId}:`, {
                         itens: detalhes.itens.length,
                         primeiroItem: detalhes.itens[0]
@@ -709,14 +727,18 @@ async function testarDetalhesPedidos() {
                     pedidosSemItens++;
                     console.log(`❌ Pedido #${pedidoId}: SEM ITENS`);
                 }
+            } else {
+                pedidosSemItens++;
+                console.log(`❌ Pedido #${pedidoId}: NÃO ENCONTRADO`);
             }
             
             // Pequena pausa
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        console.log(`📊 Resumo: ${pedidosComItens} com itens, ${pedidosSemItens} sem itens`);
-        mostrarSucesso('relatorio-produtos-container', `Teste completo: ${pedidosComItens} pedidos com itens, ${pedidosSemItens} sem itens`);
+        const mensagem = `📊 Teste completo: ${pedidosComItens} pedidos com itens (${itensTotais} itens totais), ${pedidosSemItens} sem itens`;
+        console.log(mensagem);
+        mostrarSucesso('relatorio-produtos-container', mensagem);
         
     } catch (error) {
         console.error('Erro no teste:', error);
@@ -724,7 +746,7 @@ async function testarDetalhesPedidos() {
     }
 }
 
-// FUNÇÕES DE IMPRESSÃO (mantidas iguais)
+// FUNÇÕES DE IMPRESSÃO
 function imprimirRelatorios() {
     const relatorioVendas = document.getElementById('relatorio-vendas-container');
     const relatorioProdutos = document.getElementById('relatorio-produtos-container');
@@ -873,7 +895,7 @@ function voltarParaCrud() {
 
 // Função para limpar dados
 function limparDados() {
-     {
+    if (confirm('Tem certeza que deseja limpar todos os dados em cache?')) {
         localStorage.removeItem('pedidos');
         localStorage.removeItem('pedidos_backup');
         localStorage.removeItem('api_endpoint_pedidos');
@@ -883,7 +905,7 @@ function limparDados() {
     }
 }
 
-// FUNÇÕES AUXILIARES - CORRIGIDAS
+// FUNÇÕES AUXILIARES
 function mostrarLoading(containerId, mensagem = 'Carregando...') {
     const container = document.getElementById(containerId);
     if (container) {

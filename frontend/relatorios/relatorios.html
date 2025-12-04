@@ -24,7 +24,7 @@
                 <div class="filtro-group">
                     <label for="mes-vendas">Mês:</label>
                     <select id="mes-vendas">
-                        <option value="">Selecione o mês</option>
+                        <option value="" >Selecione o mês</option>
                         <option value="1">Janeiro</option>
                         <option value="2">Fevereiro</option>
                         <option value="3">Março</option>
@@ -47,6 +47,7 @@
                         <option value="2023">2023</option>
                         <option value="2024">2024</option>
                         <option value="2025">2025</option>
+                        <option value="2026">2026</option>
                     </select>
                 </div>
                 
@@ -72,13 +73,33 @@
             
             <div class="filtros">
                 <div class="filtro-group">
-                    <label for="data-inicio">Data Início:</label>
-                    <input type="date" id="data-inicio">
+                    <label for="mes-produtos">Mês:</label>
+                    <select id="mes-produtos">
+                        <option value="">Selecione o mês</option>
+                        <option value="1">Janeiro</option>
+                        <option value="2">Fevereiro</option>
+                        <option value="3">Março</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Maio</option>
+                        <option value="6">Junho</option>
+                        <option value="7">Julho</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
                 </div>
                 
                 <div class="filtro-group">
-                    <label for="data-fim">Data Fim:</label>
-                    <input type="date" id="data-fim">
+                    <label for="ano-produtos">Ano:</label>
+                    <select id="ano-produtos">
+                        <option value="">Selecione o ano</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
                 </div>
                 
                 <div class="filtro-group">
@@ -93,7 +114,7 @@
             </div>
             
             <div id="relatorio-produtos-container">
-                <p class="mensagem-aguardando">Selecione o período e clique em "Gerar Relatório"</p>
+                <p class="mensagem-aguardando">Selecione o mês e ano, depois clique em "Gerar Relatório"</p>
             </div>
         </div>
 
